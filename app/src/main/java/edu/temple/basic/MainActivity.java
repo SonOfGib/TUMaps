@@ -12,6 +12,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         WebView myWebView = findViewById(R.id.webView);
-        myWebView.loadUrl("http://ec2-35-170-187-151.compute-1.amazonaws.com/");
+        myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 }
