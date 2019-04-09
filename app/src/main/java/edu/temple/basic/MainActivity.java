@@ -31,10 +31,10 @@ import com.google.android.gms.tasks.Task;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    LocationManager lm;
-    LocationListener ll;
+    private LocationManager lm;
+    private LocationListener ll;
     private GoogleMap mMap;
-    Marker lastMarker;
+    private Marker lastMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
                 CameraUpdate cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(lastMarker.getPosition(), 16);
+                        .newLatLngZoom(lastMarker.getPosition(), 14);
 
                 mMap.moveCamera(cameraUpdate);
             }
@@ -86,7 +86,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Map stuff
      */
     @Override
-    public void onMapReady(GoogleMap map) {mMap = map; }
+    public void onMapReady(GoogleMap map) {
+        mMap = map;
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e(" map", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(" map", "Can't find style. Error: ", e);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        lm.removeUpdates(ll);
+    }
 
     @Override
     protected void onResume() {
