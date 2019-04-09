@@ -8,13 +8,16 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationListener ll;
     private GoogleMap mMap;
     private Marker lastMarker;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,29 +53,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         lm = getSystemService(LocationManager.class);
         ll = makeLocationListener();
 
+        fab = findViewById(R.id.fab1);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addLocation();
+            }
+        });
+
         //WebView myWebView = findViewById(R.id.webView);
         //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
+    private void addLocation() {
+        Toast.makeText(this, "tap new location", Toast.LENGTH_SHORT).show();
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                //allPoints.add(point);
+                //mMap.clear();
+                mMap.addMarker(new MarkerOptions().position(point));
+                mMap.setOnMapClickListener(null);
+            }
+        });
+    }
+
+    // track your current location
     private LocationListener makeLocationListener(){
+        Log.e( "marktrack", "kicked off makeLocationlistener");
         return new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                Log.e( "marktrack", "location changed");
+
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                if (lastMarker != null)
+                if (lastMarker != null) {
                     lastMarker.setPosition(latLng);
+                }
                  else {
                     MarkerOptions markerOptions = (new MarkerOptions())
                             .position(latLng)
                             .title("You");
 
                     lastMarker = mMap.addMarker(markerOptions);
+                    Log.e( "marktrack", "added a marker");
+
                 }
 
                 CameraUpdate cameraUpdate = CameraUpdateFactory
                         .newLatLngZoom(lastMarker.getPosition(), 14);
 
                 mMap.moveCamera(cameraUpdate);
+                Log.e( "marktrack", "tried to do camera stuff");
+
             }
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {}
