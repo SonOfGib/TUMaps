@@ -68,6 +68,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
+    /*
+     * Adds a location to the map where the user pressed it.
+     * TODO Prompt user for name of location.
+     * TODO Add location to storage
+     */
     private void addLocation() {
         Toast.makeText(this, "tap new location", Toast.LENGTH_SHORT).show();
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -89,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onLocationChanged(Location location) {
                 Log.e( "marktrack", "location changed");
 
+                //TODO This is a bug waiting to happen, markers aren't meant to persist
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 if (lastMarker != null) {
                     lastMarker.setPosition(latLng);
@@ -156,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 111); // make a constant reference
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission") //eww
     private void registerForLocationUpdates() {
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll);

@@ -7,6 +7,10 @@ public class Page {
     private String wikiPageName;
 
 
+    public Page(String name){
+        wikiPageName = name;
+    }
+
     /**
      * Returns the name of the Wiki Page. Ex. For the home page the name would be home.
      * getWikiPageURL will get the full url.
