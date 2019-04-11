@@ -153,7 +153,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(Marker marker) {
                 String name = (String) marker.getTag();
-                edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
+                edu.temple.basic.dao.Location loc;
+                if(name != null)
+                    loc = mMockup.getLocation(name);
 
                 //Moved to the InfoWindow onClickListener method
                 /*if(loc != null){
