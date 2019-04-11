@@ -44,7 +44,7 @@ import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
 
 
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (lastMarker != null) {
                     lastMarker.setPosition(latLng);
                 }
-                 else {
+                else {
                     MarkerOptions markerOptions = (new MarkerOptions())
                             .position(latLng)
                             .title("You");
@@ -154,15 +154,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onMarkerClick(Marker marker) {
                 String name = (String) marker.getTag();
                 edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
-                if(loc != null){
+
+                //Moved to the InfoWindow onClickListener method
+                /*if(loc != null){
                     Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
                     intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
                     startActivity(intent);
                     return true;
-                }
+                }*/
+                marker.showInfoWindow();
                 return false;
             }
         });
+
+        //load webview upon clicking the info window
+        map.setOnInfoWindowClickListener(this);
+
         //TODO better style, current style removes too much info.
         try {
             // Customise the styling of the base map using a JSON object defined
@@ -189,6 +196,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
                 mMap.addMarker(markerOptions).setTag(l.getName());
+
+                //The line below will display the name of one of the markers without clicking on it. I assume it is the last marker created. But clicking on the info window or another marker will crash the app.
+                //mMap.addMarker(markerOptions).showInfoWindow();
             }
         }
 
@@ -232,5 +242,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             registerForLocationUpdates();
         else
             Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+        String name = (String) marker.getTag();
+        edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
+        if(loc != null){
+            Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+            intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+            startActivity(intent);
+            //return true;
+        }
+
     }
 }
