@@ -2,6 +2,7 @@ package edu.temple.basic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -45,11 +46,18 @@ import edu.temple.basic.dao.mockup.MockupLocations;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+
+
     private LocationManager lm;
     private LocationListener ll;
     private GoogleMap mMap;
     private Marker lastMarker;
     private FloatingActionButton fab;
+
+    private ArrayList<edu.temple.basic.dao.Location> mLocations;
+    private MockupLocations mMockup;
+
+    public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     // please work
 
@@ -57,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mLocations = new ArrayList<>(fetchMapLocations());
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         SupportMapFragment mapFragment = new SupportMapFragment();
@@ -138,6 +148,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        //Create a marker click listener to display content peek at bottom of screen.
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                String name = (String) marker.getTag();
+                edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
+                if(loc != null){
+                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
         //TODO better style, current style removes too much info.
         try {
             // Customise the styling of the base map using a JSON object defined
@@ -155,17 +180,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Add all the map locations
         //TODO make custom icons that display the name of the location next to it.
-        ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>(fetchMapLocations());
-        if(locations != null){
-            for(edu.temple.basic.dao.Location l : locations){
+        if(mLocations != null){
+            for(edu.temple.basic.dao.Location l : mLocations){
 
                 MarkerOptions markerOptions = (new MarkerOptions())
                         .position(l.getLatLng())
                         .title(l.getName())
-                        .anchor(0.5f, 1)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
-                mMap.addMarker(markerOptions);
+                mMap.addMarker(markerOptions).setTag(l.getName());
             }
         }
 
@@ -175,8 +198,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private List<edu.temple.basic.dao.Location> fetchMapLocations() {
-        MockupLocations mockup = MockupLocations.init();
-        return mockup.getAllLocations();
+        mMockup = MockupLocations.init();
+        return mMockup.getAllLocations();
     }
 
     @Override
