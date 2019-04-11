@@ -19,20 +19,22 @@ public class MockupLocations {
     private static Page tuttlemanMockPage = new Page("tuttleman_learning_center");
     private static final float tuttlemanLat = 39.9807f;
     private static final float tuttlemanLng = -75.1551f;
-    private static Page sercMockPage = new Page("science_engineering_research_center");
+    private static Page sercMockPage = new Page("science_education_research_center");
     private static final float sercLat = 39.9818f;
     private static final float sercLng = -75.1531f;
     private static ArrayList<Location> locationsMockDB = new ArrayList<>();
 
 
     //Inits the mockup database with some seeded locations.
-    public static void init(){
+    public static MockupLocations init(){
         Location tuttleman, serc;
-        tuttleman = new Location(tuttlemanMockPage, new LatLng(tuttlemanLat, tuttlemanLng),
-                "0");
-        serc = new Location(sercMockPage, new LatLng(sercLat, sercLng), "0");
+        tuttleman = new Location("Tuttleman Learning Center", tuttlemanMockPage,
+                new LatLng(tuttlemanLat, tuttlemanLng), "0");
+        serc = new Location("Science Education & Research Center", sercMockPage,
+                new LatLng(sercLat, sercLng), "0");
         locationsMockDB.add(tuttleman);
         locationsMockDB.add(serc);
+        return new MockupLocations();
     }
 
     /**
