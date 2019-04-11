@@ -4,6 +4,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -25,12 +30,18 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.temple.basic.dao.mockup.MockupLocations;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -68,6 +79,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
+    /*
+     * Adds a location to the map where the user pressed it.
+     * TODO Prompt user for name of location.
+     * TODO Add location to storage
+     */
     private void addLocation() {
         Toast.makeText(this, "tap new location", Toast.LENGTH_SHORT).show();
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -89,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onLocationChanged(Location location) {
                 Log.e( "marktrack", "location changed");
 
+                //TODO This is a bug waiting to happen, markers aren't meant to persist
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 if (lastMarker != null) {
                     lastMarker.setPosition(latLng);
@@ -103,11 +120,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
 
-                CameraUpdate cameraUpdate = CameraUpdateFactory
-                        .newLatLngZoom(lastMarker.getPosition(), 14);
-
-                mMap.moveCamera(cameraUpdate);
-                Log.e( "marktrack", "tried to do camera stuff");
+                //moved camera update to onReady, it was very annoying here...
 
             }
             @Override
@@ -125,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-
+        //TODO better style, current style removes too much info.
         try {
             // Customise the styling of the base map using a JSON object defined
             // in a raw resource file.
@@ -139,6 +152,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (Resources.NotFoundException e) {
             Log.e(" map", "Can't find style. Error: ", e);
         }
+
+        //Add all the map locations
+        //TODO make custom icons that display the name of the location next to it.
+        ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>(fetchMapLocations());
+        if(locations != null){
+            for(edu.temple.basic.dao.Location l : locations){
+
+                MarkerOptions markerOptions = (new MarkerOptions())
+                        .position(l.getLatLng())
+                        .title(l.getName())
+                        .anchor(0.5f, 1)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+
+                mMap.addMarker(markerOptions);
+            }
+        }
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory
+                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 14);
+        mMap.moveCamera(cameraUpdate);
+    }
+
+    private List<edu.temple.basic.dao.Location> fetchMapLocations() {
+        MockupLocations mockup = MockupLocations.init();
+        return mockup.getAllLocations();
     }
 
     @Override
@@ -156,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 111); // make a constant reference
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission") //eww
     private void registerForLocationUpdates() {
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, ll);
