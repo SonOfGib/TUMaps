@@ -2,6 +2,7 @@ package edu.temple.basic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -17,12 +18,14 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,8 +48,6 @@ import java.util.List;
 import edu.temple.basic.dao.mockup.MockupLocations;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
-
-
 
     private LocationManager lm;
     private LocationListener ll;
@@ -95,16 +96,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * TODO Add location to storage
      */
     private void addLocation() {
-        Toast.makeText(this, "tap new location", Toast.LENGTH_SHORT).show();
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng point) {
-                //allPoints.add(point);
-                //mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(point));
-                mMap.setOnMapClickListener(null);
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Location Name");
+        alert.setMessage("Please enter the new location name");
+
+        // Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        alert.setView(input);
+
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                final String value = input.getText().toString();
+                //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
+                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    @Override
+                    public void onMapClick(LatLng point) {
+                        //allPoints.add(point);
+                        //mMap.clear();
+                        mMap.addMarker(new MarkerOptions().position(point).title(value));
+                        mMap.setOnMapClickListener(null);
+                    }
+                });
+
             }
         });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+
+        alert.show();
     }
 
     // track your current location
@@ -205,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         CameraUpdate cameraUpdate = CameraUpdateFactory
-                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 14);
+                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 15);
         mMap.moveCamera(cameraUpdate);
     }
 
