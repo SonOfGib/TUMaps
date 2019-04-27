@@ -14,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<edu.temple.basic.dao.Location> mLocations;
     private MockupLocations mMockup;
 
+    LinearLayout llBottomSheet;
+    BottomSheetBehavior bottomSheetBehavior;
+
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     // please work
@@ -68,6 +73,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         mLocations = new ArrayList<>(fetchMapLocations());
+
+        // get the bottom sheet view
+        llBottomSheet = findViewById(R.id.bottom_sheet);
+
+        // init the bottom sheet behavior
+        bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         SupportMapFragment mapFragment = new SupportMapFragment();
@@ -82,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 addLocation();
             }
         });
@@ -188,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return true;
                 }*/
                 marker.showInfoWindow();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 return false;
             }
         });
