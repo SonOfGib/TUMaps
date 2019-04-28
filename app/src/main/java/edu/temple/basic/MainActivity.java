@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout llBottomSheet;
     BottomSheetBehavior bottomSheetBehavior;
 
-    int i;
+    String value;
 
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        i=0;
+
 
         mLocations = new ArrayList<>(fetchMapLocations());
 
@@ -124,27 +124,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                final String value = input.getText().toString();
+                //final String value = input.getText().toString();
+                value = input.getText().toString();
                 //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
                 mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                     @Override
                     public void onMapClick(LatLng point) {
 
-                        if(i==0){
-                        //allPoints.add(point);
-                        //mMap.clear();
                         mMap.addMarker(new MarkerOptions().position(point).title(value)
                                 .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.tuttleman)))
                                 .snippet("Tut"));
-                        mMap.setOnMapClickListener(null);}
-                        /*else{
-                            mMap.addMarker(new MarkerOptions().position(point).title(value)
-                                    .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.circle)))
-                                    .snippet("Tut"));
-                            mMap.setOnMapClickListener(null);
-                        }*/
-
-                        i++;
+                        mMap.setOnMapClickListener(null);
                     }
                 });
 
@@ -320,17 +310,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         color.setTextSize(30);
         color.setColor(Color.WHITE);
 
+
+        //View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
         View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
         ImageView markerImageView = (ImageView) customMarkerView.findViewById(R.id.profile_image);
         markerImageView.setImageResource(resId);
         customMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        //customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        customMarkerView.layout(0, 0, 48, 48);
         customMarkerView.buildDrawingCache();
-        Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),
-                Bitmap.Config.ARGB_8888);
+        //Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),Bitmap.Config.ARGB_8888);
+        Bitmap returnedBitmap = Bitmap.createBitmap(384, 192,Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(returnedBitmap);
         canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
-        canvas.drawText("TEST123", 20, 20, color);
+        canvas.drawText(value, 200, 80, color);
         Drawable drawable = customMarkerView.getBackground();
         if (drawable != null)
             drawable.draw(canvas);
