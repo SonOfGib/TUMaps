@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Marker lastMarker;
     private FloatingActionButton fab;
+    String test;
 
     // please work
 
