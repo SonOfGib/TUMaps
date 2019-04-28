@@ -16,10 +16,10 @@ import edu.temple.basic.dao.Page;
  */
 public class MockupLocations {
 
-    private static Page tuttlemanMockPage = new Page("tuttleman_learning_center");
+    private static Page tuttlemanMockPage = new Page("tuttleman-learning-center");
     private static final float tuttlemanLat = 39.9807f;
     private static final float tuttlemanLng = -75.1551f;
-    private static Page sercMockPage = new Page("science_education_research_center");
+    private static Page sercMockPage = new Page("science-education-research-center");
     private static final float sercLat = 39.9818f;
     private static final float sercLng = -75.1531f;
     private static ArrayList<Location> locationsMockDB = new ArrayList<>();
