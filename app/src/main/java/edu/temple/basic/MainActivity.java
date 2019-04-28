@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +37,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -49,7 +52,7 @@ import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private LocationManager lm;
     private LocationListener ll;
@@ -65,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
-    // please work
+    public String title = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,14 +95,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
-                addLocation();
-            }
+            public void onClick(View v) {addLocation();}
         });
 
-        //WebView myWebView = findViewById(R.id.webView);
-        //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
     /*
@@ -165,8 +163,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
 
-                //moved camera update to onReady, it was very annoying here...
-
             }
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -183,30 +179,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        //Create a marker click listener to display content peek at bottom of screen.
-        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                String name = (String) marker.getTag();
-                edu.temple.basic.dao.Location loc;
-                if(name != null)
-                    loc = mMockup.getLocation(name);
-
-                //Moved to the InfoWindow onClickListener method
-                /*if(loc != null){
-                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
-                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
-                    startActivity(intent);
-                    return true;
-                }*/
-                marker.showInfoWindow();
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                return false;
-            }
-        });
-
-        //load webview upon clicking the info window
-        map.setOnInfoWindowClickListener(this);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setOnMarkerClickListener(this);
 
         //TODO better style, current style removes too much info.
         try {
@@ -245,6 +219,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(cameraUpdate);
     }
 
+    @Override // Create a marker click listener to display content peek at bottom of screen.
+    public boolean onMarkerClick(final Marker marker) {
+        //get the map container height
+        FrameLayout mapContainer = findViewById(R.id.mapView);
+
+        Projection projection = mMap.getProjection();
+
+        LatLng markerLatLng = new LatLng(marker.getPosition().latitude,
+                marker.getPosition().longitude);
+        Point markerScreenPosition = projection.toScreenLocation(markerLatLng);
+        Point pointHalfScreenAbove = new Point(markerScreenPosition.x,
+                markerScreenPosition.y + (mapContainer.getHeight() / 4));
+
+        LatLng aboveMarkerLatLng = projection
+                .fromScreenLocation(pointHalfScreenAbove);
+
+        marker.showInfoWindow();
+        CameraUpdate center = CameraUpdateFactory.newLatLng(aboveMarkerLatLng);
+        mMap.animateCamera(center);
+
+        expandBottomSheet(marker);
+
+        return true;
+    }
+
+    /**
+     * Bottom Sheet
+     */
+    private void expandBottomSheet(Marker marker) {
+        title = (String) marker.getTag();
+        String lastUp = "Last Update: 2019";
+        String creator = "Creator: Will";
+
+        ((TextView) findViewById(R.id.titleTextView)).setText(title);
+        ((TextView) findViewById(R.id.lastUpTextView)).setText(lastUp);
+        ((TextView) findViewById(R.id.creatorTextView)).setText(creator);
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        (findViewById(R.id.wikiButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edu.temple.basic.dao.Location loc = mMockup.getLocation(title);
+                if(loc != null){
+                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
+    /**
+     * Housekeeping
+     */
     private List<edu.temple.basic.dao.Location> fetchMapLocations() {
         mMockup = MockupLocations.init();
         return mMockup.getAllLocations();
@@ -280,19 +308,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             registerForLocationUpdates();
         else
             Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-
-        String name = (String) marker.getTag();
-        edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
-        if(loc != null){
-            Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
-            intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
-            startActivity(intent);
-            //return true;
-        }
-
     }
 }
