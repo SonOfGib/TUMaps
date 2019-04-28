@@ -2,6 +2,8 @@ package edu.temple.basic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -12,16 +14,20 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,14 +49,21 @@ import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private LocationManager lm;
     private LocationListener ll;
     private GoogleMap mMap;
     private Marker lastMarker;
     private FloatingActionButton fab;
-    String test;
+
+    private ArrayList<edu.temple.basic.dao.Location> mLocations;
+    private MockupLocations mMockup;
+
+    LinearLayout llBottomSheet;
+    BottomSheetBehavior bottomSheetBehavior;
+
+    public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     // please work
 
@@ -58,6 +71,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mLocations = new ArrayList<>(fetchMapLocations());
+
+        // get the bottom sheet view
+        llBottomSheet = findViewById(R.id.bottom_sheet);
+
+        // init the bottom sheet behavior
+        bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         SupportMapFragment mapFragment = new SupportMapFragment();
@@ -72,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 addLocation();
             }
         });
@@ -86,16 +108,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * TODO Add location to storage
      */
     private void addLocation() {
-        Toast.makeText(this, "tap new location", Toast.LENGTH_SHORT).show();
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng point) {
-                //allPoints.add(point);
-                //mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(point));
-                mMap.setOnMapClickListener(null);
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Location Name");
+        alert.setMessage("Please enter the new location name");
+
+        // Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        alert.setView(input);
+
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                final String value = input.getText().toString();
+                //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
+                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    @Override
+                    public void onMapClick(LatLng point) {
+                        //allPoints.add(point);
+                        //mMap.clear();
+                        mMap.addMarker(new MarkerOptions().position(point).title(value));
+                        mMap.setOnMapClickListener(null);
+                    }
+                });
+
             }
         });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+
+        alert.show();
     }
 
     // track your current location
@@ -111,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (lastMarker != null) {
                     lastMarker.setPosition(latLng);
                 }
-                 else {
+                else {
                     MarkerOptions markerOptions = (new MarkerOptions())
                             .position(latLng)
                             .title("You");
@@ -139,6 +183,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        //Create a marker click listener to display content peek at bottom of screen.
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                String name = (String) marker.getTag();
+                edu.temple.basic.dao.Location loc;
+                if(name != null)
+                    loc = mMockup.getLocation(name);
+
+                //Moved to the InfoWindow onClickListener method
+                /*if(loc != null){
+                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+                    startActivity(intent);
+                    return true;
+                }*/
+                marker.showInfoWindow();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                return false;
+            }
+        });
+
+        //load webview upon clicking the info window
+        map.setOnInfoWindowClickListener(this);
+
         //TODO better style, current style removes too much info.
         try {
             // Customise the styling of the base map using a JSON object defined
@@ -156,28 +225,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Add all the map locations
         //TODO make custom icons that display the name of the location next to it.
-        ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>(fetchMapLocations());
-        if(locations != null){
-            for(edu.temple.basic.dao.Location l : locations){
+        if(mLocations != null){
+            for(edu.temple.basic.dao.Location l : mLocations){
 
                 MarkerOptions markerOptions = (new MarkerOptions())
                         .position(l.getLatLng())
                         .title(l.getName())
-                        .anchor(0.5f, 1)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
-                mMap.addMarker(markerOptions);
+                mMap.addMarker(markerOptions).setTag(l.getName());
+
+                //The line below will display the name of one of the markers without clicking on it. I assume it is the last marker created. But clicking on the info window or another marker will crash the app.
+                //mMap.addMarker(markerOptions).showInfoWindow();
             }
         }
 
         CameraUpdate cameraUpdate = CameraUpdateFactory
-                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 14);
+                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 15);
         mMap.moveCamera(cameraUpdate);
     }
 
     private List<edu.temple.basic.dao.Location> fetchMapLocations() {
-        MockupLocations mockup = MockupLocations.init();
-        return mockup.getAllLocations();
+        mMockup = MockupLocations.init();
+        return mMockup.getAllLocations();
     }
 
     @Override
@@ -210,5 +280,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             registerForLocationUpdates();
         else
             Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+        String name = (String) marker.getTag();
+        edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
+        if(loc != null){
+            Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+            intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+            startActivity(intent);
+            //return true;
+        }
+
     }
 }
