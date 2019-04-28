@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -136,12 +137,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.tuttleman)))
                                 .snippet("Tut"));
                         mMap.setOnMapClickListener(null);}
-                        else{
+                        /*else{
                             mMap.addMarker(new MarkerOptions().position(point).title(value)
                                     .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.circle)))
                                     .snippet("Tut"));
                             mMap.setOnMapClickListener(null);
-                        }
+                        }*/
 
                         i++;
                     }
@@ -315,6 +316,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
 
+        Paint color=new Paint();
+        color.setTextSize(30);
+        color.setColor(Color.WHITE);
+
         View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
         ImageView markerImageView = (ImageView) customMarkerView.findViewById(R.id.profile_image);
         markerImageView.setImageResource(resId);
@@ -325,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(returnedBitmap);
         canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        canvas.drawText("TEST123", 20, 20, color);
         Drawable drawable = customMarkerView.getBackground();
         if (drawable != null)
             drawable.draw(canvas);
