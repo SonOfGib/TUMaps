@@ -13,21 +13,21 @@ public class LocationTest {
             new LatLng(sercLat, sercLng), "19");
     @Test
     public void getUserId() {
-        assertEquals(location.getUserId(), "19");
+        assertEquals("19", location.getUserId());
     }
 
     @Test
     public void getName() {
-        assertEquals(location.getName(), "Tech");
+        assertEquals("Tech", location.getName());
     }
 
     @Test
     public void getLatLng() {
-        assertEquals(location.getLatLng(), new LatLng(sercLat, sercLng));
+        assertEquals(new LatLng(sercLat, sercLng), location.getLatLng());
     }
 
     @Test
     public void getPageURL() {
-        assertEquals(location.getPageURL(), "google.com");
+        assertEquals("google.com", location.getPageURL());
     }
 }
