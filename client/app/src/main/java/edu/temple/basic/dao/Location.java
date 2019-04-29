@@ -46,4 +46,5 @@ public class Location {
     public String getPageURL(){
         return wikiPage.getWikiPageName();
     }
+
 }
