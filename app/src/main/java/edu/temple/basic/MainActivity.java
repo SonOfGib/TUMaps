@@ -447,6 +447,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
                         .snippet(value));
                 mMap.setOnMapClickListener(null);
+                //heloo
             }
         });
     }
