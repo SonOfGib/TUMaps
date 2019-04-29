@@ -168,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Location Detail
         llBottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         //Add a Location
         FloatingActionButton fab = findViewById(R.id.fab1);
@@ -310,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ((TextView) findViewById(R.id.lastUpTextView)).setText(lastUp);
         ((TextView) findViewById(R.id.creatorTextView)).setText(creator);
 
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         (findViewById(R.id.wikiButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -341,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final EditText input = new EditText(this);
         alert.setView(input);
 
-        alertChoose.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
+        alertChoose.setPositiveButton("Current Location", new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int whichButton) {
                 alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
@@ -367,7 +368,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        alertChoose.setNegativeButton("Manually Place?", new DialogInterface.OnClickListener() {
+        alertChoose.setNegativeButton("Manually Place", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -402,8 +403,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Toast.makeText(getApplication(),"in get marker", Toast.LENGTH_LONG).show();
 
-        Paint color=new Paint();
-        color.setTextSize(40);
+        Paint color = new Paint();
+        color.setTextSize(80);
         color.setColor(Color.BLACK);
 
         //View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
