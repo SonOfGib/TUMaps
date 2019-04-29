@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public String title = "";
     String value;
     int resID;
+    String test;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
