@@ -20,11 +20,11 @@ public class Page {
         return wikiPageName;
     }
 
-    /**
-     * Returns the a URL to the wiki page.
-     * @return The wiki page url.
-     */
-    public String getWikiPageURL(){
-        return WikiUtils.nameToUrl(getWikiPageName());
-    }
+//    /**
+//     * Returns the a URL to the wiki page.
+//     * @return The wiki page url.
+//     */
+//    public String getWikiPageURL(){
+//        return WikiUtils.nameToUrl(getWikiPageName());
+//    }
 }

@@ -13,7 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".Register"></activity>
+        <service
+            android:name=".LocationsFetchService"
+            android:enabled="true"
+            android:exported="true"></service>
+
+        <activity android:name=".Register" />
         <activity android:name=".Login" />
 
         <meta-data
