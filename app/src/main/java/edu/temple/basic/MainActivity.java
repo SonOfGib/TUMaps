@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,9 +32,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
@@ -41,6 +46,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -53,13 +59,15 @@ import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+
 
     private LocationManager lm;
     private LocationListener ll;
     private GoogleMap mMap;
     private Marker lastMarker;
     private FloatingActionButton fab;
+    private LatLng currentLoc;
 
     private ArrayList<edu.temple.basic.dao.Location> mLocations;
     private MockupLocations mMockup;
@@ -67,19 +75,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout llBottomSheet;
     BottomSheetBehavior bottomSheetBehavior;
 
-    String value;
-    int resID;
-
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
-    // please work
+    public String title = "";
+    String value;
+    int resID;
+    boolean manual;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         mLocations = new ArrayList<>(fetchMapLocations());
 
@@ -101,14 +108,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v) {addLocation();}
 
-                addLocation();
-            }
         });
 
-        //WebView myWebView = findViewById(R.id.webView);
-        //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
     /*
@@ -118,46 +121,84 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     private void addLocation() {
 
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Location Name");
-        alert.setMessage("Please enter the new location name");
+        //alert dialog for choosing to use current location or manually placing
+        AlertDialog.Builder alertChoose= new AlertDialog.Builder(this);
+        alertChoose.setTitle("Place where?");
+        alertChoose.setMessage("Use current location or manually place?");
 
-        // Set an EditText view to get user input
+        //alert dialog for manual placement
+        final AlertDialog.Builder alertMan = new AlertDialog.Builder(this);
+        alertMan.setTitle("Location Name");
+        alertMan.setMessage("Please enter the new location name");
         final EditText input = new EditText(this);
-        alert.setView(input);
+        alertMan.setView(input);
 
+        //alert dialog for current location placement
+        final AlertDialog.Builder alertCur = new AlertDialog.Builder(this);
+        alertCur.setTitle("Location Name");
+        alertCur.setMessage("Please enter the new location name");
+        final EditText input3 = new EditText(this);
+        alertCur.setView(input3);
 
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+        alertChoose.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int whichButton) {
-                //final String value = input.getText().toString();
-                value = input.getText().toString();
-                //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
-                /*mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+                alertCur.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onMapClick(LatLng point) {
+                    public void onClick(DialogInterface dialog, int which) {
 
-                        mMap.addMarker(new MarkerOptions().position(point).title(value)
-                                .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.building1)))
-                                .snippet("Tut"));
-                        mMap.setOnMapClickListener(null);
+                        value=input3.getText().toString();
+                        Point point = new Point();
+                        point.x = 1;
+                        point.y = 0;
+                        manual=false;
+                        showIconPopup(MainActivity.this, point);
+                        //addMarker(resID, false);
                     }
-                });*/
+                });
 
-                Point point = new Point();
-                point.x = 1;
-                point.y = 0;
-                showStatusPopup(MainActivity.this, point);
+                alertCur.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
+                    }
+                });
+
+                alertCur.show();
             }
         });
 
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
+        alertChoose.setNegativeButton("Manually Place?", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                alertMan.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        value = input.getText().toString();
+
+                        Point point = new Point();
+                        point.x = 1;
+                        point.y = 0;
+                        manual=true;
+                        showIconPopup(MainActivity.this, point);
+                        //addMarker(resID, true);
+
+                    }
+                });
+
+                alertMan.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Canceled.
+                    }
+                });
+
+                alertMan.show();
             }
+
         });
 
-        alert.show();
+        alertChoose.show();
+
+
     }
 
     // track your current location
@@ -167,6 +208,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onLocationChanged(Location location) {
                 Log.e( "marktrack", "location changed");
+
+                currentLoc=new LatLng(location.getLatitude(), location.getLongitude());
 
                 //TODO This is a bug waiting to happen, markers aren't meant to persist
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -182,8 +225,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.e( "marktrack", "added a marker");
 
                 }
-
-                //moved camera update to onReady, it was very annoying here...
 
             }
             @Override
@@ -201,30 +242,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        //Create a marker click listener to display content peek at bottom of screen.
-        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                String name = (String) marker.getTag();
-                edu.temple.basic.dao.Location loc;
-                if(name != null)
-                    loc = mMockup.getLocation(name);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setOnMarkerClickListener(this);
 
-                //Moved to the InfoWindow onClickListener method
-                /*if(loc != null){
-                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
-                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
-                    startActivity(intent);
-                    return true;
-                }*/
-                marker.showInfoWindow();
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                return false;
-            }
-        });
-
-        //load webview upon clicking the info window
-        map.setOnInfoWindowClickListener(this);
 
         //TODO better style, current style removes too much info.
         try {
@@ -263,6 +283,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(cameraUpdate);
     }
 
+    @Override // Create a marker click listener to display content peek at bottom of screen.
+    public boolean onMarkerClick(final Marker marker) {
+        //get the map container height
+        FrameLayout mapContainer = findViewById(R.id.mapView);
+
+        Projection projection = mMap.getProjection();
+
+        LatLng markerLatLng = new LatLng(marker.getPosition().latitude,
+                marker.getPosition().longitude);
+        Point markerScreenPosition = projection.toScreenLocation(markerLatLng);
+        Point pointHalfScreenAbove = new Point(markerScreenPosition.x,
+                markerScreenPosition.y + (mapContainer.getHeight() / 4));
+
+        LatLng aboveMarkerLatLng = projection
+                .fromScreenLocation(pointHalfScreenAbove);
+
+        marker.showInfoWindow();
+        CameraUpdate center = CameraUpdateFactory.newLatLng(aboveMarkerLatLng);
+        mMap.animateCamera(center);
+
+        expandBottomSheet(marker);
+
+        return true;
+    }
+
+    /**
+     * Bottom Sheet
+     */
+    private void expandBottomSheet(Marker marker) {
+        title = (String) marker.getTag();
+        String lastUp = "Last Update: 2019";
+        String creator = "Creator: Will";
+
+        ((TextView) findViewById(R.id.titleTextView)).setText(title);
+        ((TextView) findViewById(R.id.lastUpTextView)).setText(lastUp);
+        ((TextView) findViewById(R.id.creatorTextView)).setText(creator);
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        (findViewById(R.id.wikiButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edu.temple.basic.dao.Location loc = mMockup.getLocation(title);
+                if(loc != null){
+                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
+    /**
+     * Housekeeping
+     */
     private List<edu.temple.basic.dao.Location> fetchMapLocations() {
         mMockup = MockupLocations.init();
         return mMockup.getAllLocations();
@@ -316,6 +390,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
 
+        //Toast.makeText(getApplication(),"in get marker", Toast.LENGTH_LONG).show();
+
         Paint color=new Paint();
         color.setTextSize(40);
         color.setColor(Color.WHITE);
@@ -340,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return returnedBitmap;
     }
 
-    private void showStatusPopup(final Activity context, Point p) {
+    private void showIconPopup(final Activity context, Point p) {
 
         // Inflate the popup_layout.xml
         LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
@@ -373,13 +449,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ImageView house=layout.findViewById(R.id.house);
         ImageView question=layout.findViewById(R.id.questionMark);
 
+
+
         build1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //resID=getResources().getIdentifier("building1.png", "drawable", "edu.temple.basic");
                 resID=getResources().getIdentifier("building1", "drawable", getPackageName());
+               addMarker(resID, manual);
                 chooseIcon.dismiss();
-
             }
         });
 
@@ -387,6 +464,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("building2", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -395,6 +473,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("car1", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -403,6 +482,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("car2", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -411,6 +491,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("foodtruck1", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -419,6 +500,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("train", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -427,6 +509,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("house", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -435,21 +518,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("questionmark", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
+    }
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng point) {
+    public void addMarker(int rID, boolean manual){
 
-                mMap.addMarker(new MarkerOptions().position(point).title(value)
-                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                        .snippet(value));
-                mMap.setOnMapClickListener(null);
-                //heloo
-            }
-        });
+        if(!manual){
+            mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
+                    .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                    .snippet(value));
+        }
+        else{
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng point) {
+
+                    mMap.addMarker(new MarkerOptions().position(point).title(value)
+                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                            .snippet(value));
+                    mMap.setOnMapClickListener(null);
+                }
+            });
+        }
+
     }
 
 
