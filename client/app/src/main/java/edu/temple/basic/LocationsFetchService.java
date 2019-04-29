@@ -77,7 +77,7 @@ public class LocationsFetchService extends Service {
                     @Override
                     public void onResponse(String response) {
                         // Display the first 500 characters of the response string.
-                        Log.d("responseInfo","Response is: "+ response);
+                        Log.d("gettrack","Response is: "+ response);
                         //broadcast that we have fetched locations
                         LocalBroadcastManager bm = LocalBroadcastManager.getInstance(mContext);
                         Intent intent =  new Intent("fetched_markers");
