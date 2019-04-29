@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Marker lastMarker;
     private FloatingActionButton fab;
+    private LatLng currentLoc;
 
     private ArrayList<edu.temple.basic.dao.Location> mLocations;
     private MockupLocations mMockup;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public String title = "";
     String value;
     int resID;
-    String test;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +119,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * TODO Add location to storage
      */
     private void addLocation() {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Location Name");
         alert.setMessage("Please enter the new location name");
 
@@ -126,37 +128,91 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final EditText input = new EditText(this);
         alert.setView(input);
 
-        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+        AlertDialog.Builder alert2= new AlertDialog.Builder(this);
+        alert2.setTitle("Place where?");
+        alert2.setMessage("Use current location or manually place?");
+        //final EditText input2=new EditText(this);
+        //alert2.setView(input2);
+
+        final AlertDialog.Builder alert3 = new AlertDialog.Builder(this);
+        alert3.setTitle("Location Name");
+        alert3.setMessage("Please enter the new location name");
+
+        // Set an EditText view to get user input
+        final EditText input3 = new EditText(this);
+        alert3.setView(input3);
+
+        alert2.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int whichButton) {
-                //final String value = input.getText().toString();
-                value = input.getText().toString();
-                //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
-                /*mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+                /*final AlertDialog.Builder alert3 = new AlertDialog.Builder(getApplicationContext());
+                alert3.setTitle("Location Name");
+                alert3.setMessage("Please enter the new location name");
+
+                // Set an EditText view to get user input
+                final EditText input3 = new EditText(getApplicationContext());
+                alert3.setView(input3);*/
+
+                alert3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onMapClick(LatLng point) {
+                    public void onClick(DialogInterface dialog, int which) {
 
-                        mMap.addMarker(new MarkerOptions().position(point).title(value)
-                                .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.building1)))
-                                .snippet("Tut"));
-                        mMap.setOnMapClickListener(null);
+                        value=input3.getText().toString();
+                        Point point = new Point();
+                        point.x = 1;
+                        point.y = 0;
+                        showStatusPopup(MainActivity.this, point, false);
+
                     }
-                });*/
+                });
 
+                alert3.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+
+                alert3.show();
+
+                /*value=input2.getText().toString();
                 Point point = new Point();
                 point.x = 1;
                 point.y = 0;
-                showStatusPopup(MainActivity.this, point);
+                showStatusPopup(MainActivity.this, point, false);*/
 
             }
         });
 
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                // Canceled.
+        alert2.setNegativeButton("Manually Place?", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        value = input.getText().toString();
+
+                        Point point = new Point();
+                        point.x = 1;
+                        point.y = 0;
+                        showStatusPopup(MainActivity.this, point, true);
+
+                    }
+                });
+
+                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Canceled.
+                    }
+                });
+
+                alert.show();
             }
+
         });
-      
-        alert.show();
+
+        alert2.show();
+
+
     }
 
     // track your current location
@@ -166,6 +222,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onLocationChanged(Location location) {
                 Log.e( "marktrack", "location changed");
+
+                currentLoc=new LatLng(location.getLatitude(), location.getLongitude());
 
                 //TODO This is a bug waiting to happen, markers aren't meant to persist
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -370,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return returnedBitmap;
     }
 
-    private void showStatusPopup(final Activity context, Point p) {
+    private void showStatusPopup(final Activity context, Point p, final boolean manual) {
 
         // Inflate the popup_layout.xml
         LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
@@ -469,7 +527,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+        if(!manual){
+            mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
+                    .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                    .snippet(value));
+        }
+        else{
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng point) {
+
+                    mMap.addMarker(new MarkerOptions().position(point).title(value)
+                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                            .snippet(value));
+                    mMap.setOnMapClickListener(null);
+                }
+            });
+        }
+
+        /*mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
 
@@ -477,8 +553,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
                         .snippet(value));
                 mMap.setOnMapClickListener(null);
-            }
-        });
+
+                /*if(manual) {
+                    mMap.addMarker(new MarkerOptions().position(point).title(value)
+                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                            .snippet(value));
+                    mMap.setOnMapClickListener(null);
+                }
+                else {
+                    point = currentLoc;
+                    mMap.addMarker(new MarkerOptions().position(point).title(value)
+                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                            .snippet(value));
+                }*/
+          //  }
+        //});
     }
 
 
