@@ -2,6 +2,8 @@ package edu.temple.basic;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,19 +13,24 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -31,6 +38,8 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -44,15 +53,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+
 
     private LocationManager lm;
     private LocationListener ll;
@@ -69,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     public String title = "";
+    String value;
+    int resID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {addLocation();}
+
         });
 
     }
@@ -116,17 +127,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                final String value = input.getText().toString();
+                //final String value = input.getText().toString();
+                value = input.getText().toString();
                 //Toast.makeText(getParent(), "tap new location", Toast.LENGTH_SHORT).show();
-                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                /*mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                     @Override
                     public void onMapClick(LatLng point) {
-                        //allPoints.add(point);
-                        //mMap.clear();
-                        mMap.addMarker(new MarkerOptions().position(point).title(value));
+
+                        mMap.addMarker(new MarkerOptions().position(point).title(value)
+                                .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(R.drawable.building1)))
+                                .snippet("Tut"));
                         mMap.setOnMapClickListener(null);
                     }
-                });
+                });*/
+
+                Point point = new Point();
+                point.x = 1;
+                point.y = 0;
+                showStatusPopup(MainActivity.this, point);
 
             }
         });
@@ -136,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Canceled.
             }
         });
-
+      
         alert.show();
     }
 
@@ -181,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = map;
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setOnMarkerClickListener(this);
+
 
         //TODO better style, current style removes too much info.
         try {
@@ -309,4 +328,157 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         else
             Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
     }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
+        String name = (String) marker.getTag();
+        edu.temple.basic.dao.Location loc = mMockup.getLocation(name);
+        if(loc != null){
+            Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+            intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+            startActivity(intent);
+            //return true;
+        }
+
+    }
+
+    private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
+
+        Paint color=new Paint();
+        color.setTextSize(40);
+        color.setColor(Color.WHITE);
+
+        //View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+        View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
+        ImageView markerImageView = (ImageView) customMarkerView.findViewById(R.id.profile_image);
+        markerImageView.setImageResource(resId);
+        customMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        //customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        customMarkerView.layout(0, 0, 48, 48);
+        customMarkerView.buildDrawingCache();
+        //Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),Bitmap.Config.ARGB_8888);
+        Bitmap returnedBitmap = Bitmap.createBitmap(500, 192,Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(returnedBitmap);
+        canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        canvas.drawText(value, 200, 80, color);
+        Drawable drawable = customMarkerView.getBackground();
+        if (drawable != null)
+            drawable.draw(canvas);
+        customMarkerView.draw(canvas);
+        return returnedBitmap;
+    }
+
+    private void showStatusPopup(final Activity context, Point p) {
+
+        // Inflate the popup_layout.xml
+        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
+        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = layoutInflater.inflate(R.layout.icon_selection_window, null);
+
+        // Creating the PopupWindow
+        final PopupWindow chooseIcon = new PopupWindow(context);
+        chooseIcon.setContentView(layout);
+        chooseIcon.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+        chooseIcon.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
+        chooseIcon.setFocusable(true);
+
+        // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
+        int OFFSET_X = -20;
+        int OFFSET_Y = 50;
+
+        //Clear the default translucent background
+        chooseIcon.setBackgroundDrawable(new BitmapDrawable());
+
+        // Displaying the popup at the specified location, + offsets.
+        chooseIcon.showAtLocation(layout, Gravity.NO_GRAVITY, p.x + OFFSET_X, p.y + OFFSET_Y);
+
+        ImageView build1=layout.findViewById(R.id.building1);
+        ImageView build2=layout.findViewById(R.id.building2);
+        ImageView car1=layout.findViewById(R.id.car1);
+        ImageView car2=layout.findViewById(R.id.car2);
+        ImageView foodTruck=layout.findViewById(R.id.foodTruck);
+        ImageView train=layout.findViewById(R.id.train);
+        ImageView house=layout.findViewById(R.id.house);
+        ImageView question=layout.findViewById(R.id.questionMark);
+
+        build1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //resID=getResources().getIdentifier("building1.png", "drawable", "edu.temple.basic");
+                resID=getResources().getIdentifier("building1", "drawable", getPackageName());
+                chooseIcon.dismiss();
+
+            }
+        });
+
+        build2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("building2", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        car1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("car1", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        car2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("car2", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        foodTruck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("foodtruck1", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        train.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("train", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        house.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("house", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        question.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resID=getResources().getIdentifier("questionmark", "drawable", getPackageName());
+                chooseIcon.dismiss();
+            }
+        });
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+
+                mMap.addMarker(new MarkerOptions().position(point).title(value)
+                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+                        .snippet(value));
+                mMap.setOnMapClickListener(null);
+            }
+        });
+    }
+
+
 }

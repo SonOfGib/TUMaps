@@ -1,10 +1,14 @@
 <resources>
     <string name="app_name">TUMaps</string>
-
+  
     <string name="bottom_sheet_peek">bottom sheet title</string>
     <string name="bottom_sheet_image">location image</string>
     <string name="bottom_sheet_lastUp">Last Update:</string>
     <string name="bottom_sheet_creator">Creator:</string>
     <string name="bottom_sheet_button">More Info</string>
+
+
+    <string name="bottom_sheet_peek">bottom sheet peek</string>
+    <string name="bottom_sheet_content">bottom sheet content</string>
 
 </resources>
