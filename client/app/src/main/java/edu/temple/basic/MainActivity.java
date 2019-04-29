@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,9 +32,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
@@ -41,6 +46,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -53,7 +59,8 @@ import java.util.List;
 
 import edu.temple.basic.dao.mockup.MockupLocations;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+
 
     private LocationManager lm;
     private LocationListener ll;
@@ -67,19 +74,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout llBottomSheet;
     BottomSheetBehavior bottomSheetBehavior;
 
-    String value;
-    int resID;
-
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
-    // please work
+    public String title = "";
+    String value;
+    int resID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         mLocations = new ArrayList<>(fetchMapLocations());
 
@@ -101,14 +105,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View v) {addLocation();}
 
-                addLocation();
-            }
         });
 
-        //WebView myWebView = findViewById(R.id.webView);
-        //myWebView.loadUrl("http://ec2-34-203-104-209.compute-1.amazonaws.com/");
     }
 
     /*
@@ -117,7 +117,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * TODO Add location to storage
      */
     private void addLocation() {
-
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Location Name");
         alert.setMessage("Please enter the new location name");
@@ -125,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Set an EditText view to get user input
         final EditText input = new EditText(this);
         alert.setView(input);
-
 
         alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
@@ -156,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Canceled.
             }
         });
-
+      
         alert.show();
     }
 
@@ -183,8 +181,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
 
-                //moved camera update to onReady, it was very annoying here...
-
             }
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -201,30 +197,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        //Create a marker click listener to display content peek at bottom of screen.
-        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                String name = (String) marker.getTag();
-                edu.temple.basic.dao.Location loc;
-                if(name != null)
-                    loc = mMockup.getLocation(name);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setOnMarkerClickListener(this);
 
-                //Moved to the InfoWindow onClickListener method
-                /*if(loc != null){
-                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
-                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
-                    startActivity(intent);
-                    return true;
-                }*/
-                marker.showInfoWindow();
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                return false;
-            }
-        });
-
-        //load webview upon clicking the info window
-        map.setOnInfoWindowClickListener(this);
 
         //TODO better style, current style removes too much info.
         try {
@@ -263,6 +238,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(cameraUpdate);
     }
 
+    @Override // Create a marker click listener to display content peek at bottom of screen.
+    public boolean onMarkerClick(final Marker marker) {
+        //get the map container height
+        FrameLayout mapContainer = findViewById(R.id.mapView);
+
+        Projection projection = mMap.getProjection();
+
+        LatLng markerLatLng = new LatLng(marker.getPosition().latitude,
+                marker.getPosition().longitude);
+        Point markerScreenPosition = projection.toScreenLocation(markerLatLng);
+        Point pointHalfScreenAbove = new Point(markerScreenPosition.x,
+                markerScreenPosition.y + (mapContainer.getHeight() / 4));
+
+        LatLng aboveMarkerLatLng = projection
+                .fromScreenLocation(pointHalfScreenAbove);
+
+        marker.showInfoWindow();
+        CameraUpdate center = CameraUpdateFactory.newLatLng(aboveMarkerLatLng);
+        mMap.animateCamera(center);
+
+        expandBottomSheet(marker);
+
+        return true;
+    }
+
+    /**
+     * Bottom Sheet
+     */
+    private void expandBottomSheet(Marker marker) {
+        title = (String) marker.getTag();
+        String lastUp = "Last Update: 2019";
+        String creator = "Creator: Will";
+
+        ((TextView) findViewById(R.id.titleTextView)).setText(title);
+        ((TextView) findViewById(R.id.lastUpTextView)).setText(lastUp);
+        ((TextView) findViewById(R.id.creatorTextView)).setText(creator);
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        (findViewById(R.id.wikiButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                edu.temple.basic.dao.Location loc = mMockup.getLocation(title);
+                if(loc != null){
+                    Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
+                    intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
+    /**
+     * Housekeeping
+     */
     private List<edu.temple.basic.dao.Location> fetchMapLocations() {
         mMockup = MockupLocations.init();
         return mMockup.getAllLocations();
