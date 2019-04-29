@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // Get Locations
     ArrayList<edu.temple.basic.dao.Location> mLocations = new ArrayList<>();
-    ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>();
     private MockupLocations mMockup;
 
     // Location Detail
@@ -96,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     // Add a location
-    private FloatingActionButton fab;
     String value;
     int resID;
     boolean manual;
@@ -181,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        fab = findViewById(R.id.fab1);
+        FloatingActionButton fab = findViewById(R.id.fab1);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -292,15 +290,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         CameraUpdate center = CameraUpdateFactory.newLatLng(aboveMarkerLatLng);
         mMap.animateCamera(center);
 
-        expandBottomSheet(marker);
+        // send it a Location here
+        edu.temple.basic.dao.Location loc = getLocation(marker.getTitle());
+        expandBottomSheet(loc);
 
         return true;
     }
 
-    private void expandBottomSheet(Marker marker) {
-        title = (String) marker.getTag();
-        String lastUp = "Last Update: 2019";
-        String creator = "Creator: Will";
+    private edu.temple.basic.dao.Location getLocation(String title) {
+        edu.temple.basic.dao.Location loc = null;
+
+        for(int i=0; i<mLocations.size(); i++) {
+            if(mLocations.get(i).getName().compareTo(title) == 0)
+                loc = mLocations.get(i);
+        }
+
+        return loc;
+    }
+
+    // a second method for the new markers?
+
+    private void expandBottomSheet(edu.temple.basic.dao.Location loc) {
+        title = loc.getName();
+        String lastUp = "Latitude: " + loc.getLatLng().latitude;
+        String creator = "Longitude: " + loc.getLatLng().longitude;
 
         ((TextView) findViewById(R.id.titleTextView)).setText(title);
         ((TextView) findViewById(R.id.lastUpTextView)).setText(lastUp);
@@ -310,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         (findViewById(R.id.wikiButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                edu.temple.basic.dao.Location loc = mMockup.getLocation(title);
+                edu.temple.basic.dao.Location loc = getLocation(title);
                 if(loc != null){
                     Intent intent = new Intent(MainActivity.this, WikiViewerActivity.class);
                     intent.putExtra(WIKI_URL_EXTRA, loc.getPageURL());
@@ -400,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Paint color=new Paint();
         color.setTextSize(40);
-        color.setColor(Color.WHITE);
+        color.setColor(Color.BLACK);
 
         //View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
         View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.custom_marker_layout, null);
@@ -530,9 +543,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void addMarker(int rID, boolean manual){
 
         if(!manual){
-            mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
+            Marker marker = mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
                     .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
                     .snippet(value));
+
+            edu.temple.basic.dao.Location loc = new edu.temple.basic.dao.Location(marker.getTitle(),
+                    new Page("http://ec2-34-203-104-209.compute-1.amazonaws.com/listLocations.php/" + marker.getTitle()),
+                    new LatLng(marker.getPosition().latitude,
+                            marker.getPosition().longitude),
+                    Integer.toString(42)); // TODO make this a real id
+
+            //mLocations.add(loc);
+            expandBottomSheet(loc);
         }
         else{
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {

@@ -3,8 +3,8 @@
   
     <string name="bottom_sheet_peek">bottom sheet title</string>
     <string name="bottom_sheet_image">location image</string>
-    <string name="bottom_sheet_lastUp">Last Update:</string>
-    <string name="bottom_sheet_creator">Creator:</string>
+    <string name="bottom_sheet_lastUp">Latitude:</string>
+    <string name="bottom_sheet_creator">Longitude:</string>
     <string name="bottom_sheet_button">More Info</string>
 
 </resources>
