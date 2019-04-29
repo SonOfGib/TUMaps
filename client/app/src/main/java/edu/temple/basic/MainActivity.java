@@ -307,18 +307,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
-    private edu.temple.basic.dao.Location getLocation(String title) {
-        edu.temple.basic.dao.Location loc = null;
-
-        for(int i=0; i<mLocations.size(); i++) {
-            if(mLocations.get(i).getName().compareTo(title) == 0)
-                loc = mLocations.get(i);
+    edu.temple.basic.dao.Location getLocation(String name) {
+        for(edu.temple.basic.dao.Location l : mLocations){
+            if(l.getName() != null && l.getName().contains(name))
+                return l;
         }
-
-        return loc;
+        return null;
     }
-
-    // a second method for the new markers?
 
     private void expandBottomSheet(edu.temple.basic.dao.Location loc) {
         title = loc.getName();
@@ -341,14 +336,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-    }
-
-    edu.temple.basic.dao.Location getLocation(String name){
-        for(edu.temple.basic.dao.Location l : mLocations){
-            if(l.getName() != null && l.getName().contains(name))
-               return l;
-       }
-       return null;
     }
 
     /**
