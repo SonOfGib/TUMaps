@@ -46,6 +46,13 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -64,9 +71,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import edu.temple.basic.dao.Page;
-import edu.temple.basic.dao.mockup.MockupLocations;
+
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -76,9 +86,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean mLocationPermissionGranted;
     FusedLocationProviderClient mFusedLocationProviderClient;
 
+    private LatLng mNewPinLoc;
+
     // Get Locations
     ArrayList<edu.temple.basic.dao.Location> mLocations = new ArrayList<>();
-    private MockupLocations mMockup;
 
     // Location Detail
     LinearLayout llBottomSheet;
@@ -118,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("BROADCAST", "Received");
+            mLocations = new ArrayList<>();
             JSONArray getArray = mFetchService.getLocationJson();
             //parse through json array
             try {
@@ -180,6 +192,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Housekeeping
         activity = this;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mConnection);
     }
 
     /**
@@ -254,10 +272,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Get Locations
      */
-    private List<edu.temple.basic.dao.Location> fetchMapLocations() {
-        mMockup = MockupLocations.init();
-        return mMockup.getAllLocations();
-    }
+//    private List<edu.temple.basic.dao.Location> fetchMapLocations() {
+//        mMockup = MockupLocations.init();
+//        return mMockup.getAllLocations();
+//    }
 
     /**
      * Location detail
@@ -323,6 +341,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+    }
+
+    edu.temple.basic.dao.Location getLocation(String name){
+        for(edu.temple.basic.dao.Location l : mLocations){
+            if(l.getName() != null && l.getName().contains(name))
+               return l;
+       }
+       return null;
     }
 
     /**
@@ -533,20 +559,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addMarker(int rID, boolean manual){
-
         if(!manual){
             Marker marker = mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
                     .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
                     .snippet(value));
 
+            
             edu.temple.basic.dao.Location loc = new edu.temple.basic.dao.Location(marker.getTitle(),
-                    new Page("http://ec2-34-203-104-209.compute-1.amazonaws.com/listLocations.php/" + marker.getTitle()),
+                    new Page("http://ec2-34-203-104-209.compute-1.amazonaws.com/dokuwiki/locations/" + marker.getTitle()),
                     new LatLng(marker.getPosition().latitude,
                             marker.getPosition().longitude),
                     Integer.toString(42)); // TODO make this a real id
 
             //mLocations.add(loc);
             expandBottomSheet(loc);
+            mNewPinLoc = currentLoc;
         }
         else{
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -554,13 +581,50 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMapClick(LatLng point) {
 
                     mMap.addMarker(new MarkerOptions().position(point).title(value)
-                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+//                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
                             .snippet(value));
                     mMap.setOnMapClickListener(null);
+                    mNewPinLoc = point;
                 }
             });
         }
+        addToDatabase(value, mNewPinLoc);
+        mFetchService.fetchLocations();
+    }
 
+    public void addToDatabase(final String name, LatLng latLng){
+        String url = "http://ec2-34-203-104-209.compute-1.amazonaws.com/dokuwiki/createLocation.php";
+        //send username and password off to loginEndpoint.php
+        RequestQueue reQueue = Volley.newRequestQueue(MainActivity.this);
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("new marker response", response);
+                    }
+
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("markerError", "error was:", error.getCause());
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                //lat lng uid locationName
+                Map<String, String> postMap = new HashMap<>();
+                postMap.put("lat", ""+ mNewPinLoc.latitude);
+                postMap.put("lng", ""+mNewPinLoc.longitude);
+                postMap.put("uid", "1");
+                postMap.put("locationName", name);
+                return postMap;
+            }
+
+        };
+
+        // Add the request to the RequestQueue.
+        reQueue.add(stringRequest);
     }
 
     @Override
