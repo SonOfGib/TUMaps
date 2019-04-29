@@ -2,9 +2,13 @@ package edu.temple.basic;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,12 +20,17 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.IBinder;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -56,9 +65,15 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import edu.temple.basic.dao.Page;
 import edu.temple.basic.dao.mockup.MockupLocations;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -84,6 +99,57 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     String value;
     int resID;
     boolean manual;
+    boolean mBounded;
+    LocationsFetchService mFetchService;
+
+    ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>();
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBounded = false;
+            mFetchService = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mBounded = true;
+            LocationsFetchService.LocalBinder mLocalBinder = (LocationsFetchService.LocalBinder)
+                    service;
+
+            mFetchService = mLocalBinder.getService();
+            //fetch right away so we don't have old data
+            //mFetchService.fetchLocations();
+
+        }
+    };
+
+    //recieve json and save it in prefs and then update the backend stuff!
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("BROADCAST", "Received");
+            JSONArray getArray = mFetchService.getLocationJson();
+            //parse through json array
+            try {
+                for (int i = 0; i < getArray.length(); i++) {
+                    JSONObject object = getArray.getJSONObject(i);
+                    //id, name, lat, lng, creatorId, url
+                    locations.add(new edu.temple.basic.dao.Location(object.getString("name"),
+                            new Page(object.getString("url")),
+                            new LatLng(object.getDouble("latitude"),
+                                    object.getDouble("latitude")),
+                            Integer.toString(object.getInt("creatorId"))));
+                }
+            } catch (JSONException e) {
+                Log.e("json error", "broadcast reciever()", e);
+                return;
+            }
+            //all locations processed.
+
+
+        }
+    };
 
     // Housekeeping
     Activity activity;
@@ -94,6 +160,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         mLocations = new ArrayList<>(fetchMapLocations());
+
+        Intent bindIntent = new Intent(this, LocationsFetchService.class);
+        bindService(bindIntent, mConnection, BIND_AUTO_CREATE);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+                new IntentFilter("fetched_markers"));
 
         // get the bottom sheet view
         llBottomSheet = findViewById(R.id.bottom_sheet);
