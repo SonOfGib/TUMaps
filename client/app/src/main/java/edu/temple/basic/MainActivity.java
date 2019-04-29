@@ -85,7 +85,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     FusedLocationProviderClient mFusedLocationProviderClient;
 
     // Get Locations
-    private ArrayList<edu.temple.basic.dao.Location> mLocations;
+    ArrayList<edu.temple.basic.dao.Location> mLocations = new ArrayList<>();
+    ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>();
     private MockupLocations mMockup;
 
     // Location Detail
@@ -102,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean mBounded;
     LocationsFetchService mFetchService;
 
-    ArrayList<edu.temple.basic.dao.Location> locations = new ArrayList<>();
-
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -119,12 +118,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mFetchService = mLocalBinder.getService();
             //fetch right away so we don't have old data
-            //mFetchService.fetchLocations();
+            mFetchService.fetchLocations();
 
         }
     };
 
-    //recieve json and save it in prefs and then update the backend stuff!
+    // recieve json and save it in prefs and then update the backend stuff!
     private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -135,19 +134,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (int i = 0; i < getArray.length(); i++) {
                     JSONObject object = getArray.getJSONObject(i);
                     //id, name, lat, lng, creatorId, url
-                    locations.add(new edu.temple.basic.dao.Location(object.getString("name"),
+                    edu.temple.basic.dao.Location loc = new edu.temple.basic.dao.Location(object.getString("name"),
                             new Page(object.getString("url")),
                             new LatLng(object.getDouble("latitude"),
-                                    object.getDouble("latitude")),
-                            Integer.toString(object.getInt("creatorId"))));
+                                    object.getDouble("longitude")),
+                            Integer.toString(object.getInt("creatorId")));
+
+                    Log.d("gettrack", "name: " + loc.getName() + ", lat: " + loc.getLatLng().latitude + ", lng: " + loc.getLatLng().longitude + ", url: " + loc.getPageURL());
+                    mLocations.add(loc);
                 }
+                addAllLocations();
             } catch (JSONException e) {
                 Log.e("json error", "broadcast reciever()", e);
                 return;
             }
             //all locations processed.
-
-
         }
     };
 
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mLocations = new ArrayList<>(fetchMapLocations());
+        //mLocations = new ArrayList<>(fetchMapLocations());
 
         Intent bindIntent = new Intent(this, LocationsFetchService.class);
         bindService(bindIntent, mConnection, BIND_AUTO_CREATE);
@@ -225,14 +226,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("location", "issue getting location");
         }
 
-        //TODO better style, current style removes too much info.
-        try {
-            // Customise the styling of the base map using a JSON object defined
-            // in a raw resource file.
+        try { // Customize base map styling
             boolean success = mMap.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(
                             this, R.raw.style_json));
-
             if (!success) {
                 Log.e(" map", "Style parsing failed.");
             }
@@ -240,9 +237,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e(" map", "Can't find style. Error: ", e);
         }
 
-        //Add all the map locations
-        if(mLocations != null){
+        addAllLocations();
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory
+                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 15);
+        mMap.moveCamera(cameraUpdate);
+    }
+
+    private void addAllLocations() {
+        if(mMap != null && mLocations != null){
             for(edu.temple.basic.dao.Location l : mLocations){
+                Log.d("gettrack", "found: " + l.getName() + " lat: " + l.getLatLng().latitude + " lng: " + l.getLatLng().longitude + " at: " + l.getPageURL());
 
                 MarkerOptions markerOptions = (new MarkerOptions())
                         .position(l.getLatLng())
@@ -252,10 +257,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMap.addMarker(markerOptions).setTag(l.getName());
             }
         }
-
-        CameraUpdate cameraUpdate = CameraUpdateFactory
-                .newLatLngZoom(new LatLng(39.9809459, -75.152955), 15);
-        mMap.moveCamera(cameraUpdate);
+        else
+            Log.d("gettrack", "locations are null");
     }
 
     /**
