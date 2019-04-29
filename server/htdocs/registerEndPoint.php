@@ -1,5 +1,8 @@
 <?php
-    
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        echo "Get is not supported.";
+        exit();
+    }
     $Email = $_POST["email"];
     $Name = $_POST["username"];
     $Password = $_POST["password"];
@@ -21,7 +24,7 @@
         //hash password
         $passhash = password_hash($Password, PASSWORD_DEFAULT);
        
-        $conn = mysqli_connect('localhost', 'admin', 'TempleOwls2020', 'wiki_data');
+        $conn = mysqli_connect('localhost', 'root', 'TempleOwls2020', 'wiki_data');
         $query = "SELECT * FROM user WHERE username='$Name';";
         $result = mysqli_query($conn, $query);
         if($result){
@@ -40,10 +43,30 @@
                     exit();
                 }
                 else{
-                    echo "Registered!";
-                    exit();
+                    //User was inserted, get the id so we can insert into the other dbs.
+                    $id = $conn->insert_id;
+                    //we need to insert into members the uid and gid.
+                    $queryGroupname="SELECT id FROM `groups` WHERE groupName='user';";
+                    $result = mysqli_query($conn, $queryGroupname);
+                    if($result){
+                        $gid = mysqli_fetch_assoc($result)['id'];
+                        $queryInsert = "INSERT INTO `member` (uid, gid) VALUES ($id, $gid);";
+                        $result = mysqli_query($conn, $queryInsert);
+                        if($result){
+                            //Spit back userid
+                            echo "".$id;
+                            exit();
+                        }
+                        else{
+                            echo "Failed to insert member";
+                            exit();
+                        }
+                    }
+                    else{
+                        echo "Failed to fetch gid";
+                        exit();
+                    }
                 }
-                
             }
         }
     }
