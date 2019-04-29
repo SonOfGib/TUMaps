@@ -25,6 +25,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -213,11 +214,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
             mLocationPermissionGranted = true;
-        } else {
-            // Show rationale and request permission
-            mLocationPermissionGranted = false;
-            String[] perms = {Manifest.permission.ACCESS_FINE_LOCATION};
-            requestPermissions(perms, 111);
         }
 
         try{
@@ -636,29 +632,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
             mLocationPermissionGranted = true;
         }
         else {
             mLocationPermissionGranted = false;
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 111); // make a constant reference
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 111); // make a constant reference
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 111) {
-            if (permissions.length == 1 &&
-                    permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                    checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mLocationPermissionGranted = true;
-                mMap.setMyLocationEnabled(true);
-            } else {
-                mLocationPermissionGranted = false;
-                Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case 111: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionGranted = true;
+                } else {
+                    Log.e(" permtrack", "length: " + permissions.length);
+                    mLocationPermissionGranted = false;
+                    Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
+                }
+                return;
             }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
         }
     }
 
