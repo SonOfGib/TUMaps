@@ -62,18 +62,28 @@ import edu.temple.basic.dao.mockup.MockupLocations;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
 
+    // Map
     private LocationManager lm;
     private LocationListener ll;
     private GoogleMap mMap;
-    private Marker lastMarker;
+
+
+    // Add a location
     private FloatingActionButton fab;
+
+    // Get Locations
+
+    // Location Detail
+    LinearLayout llBottomSheet;
+    BottomSheetBehavior bottomSheetBehavior;
+
+    private Marker lastMarker;
     private LatLng currentLoc;
 
     private ArrayList<edu.temple.basic.dao.Location> mLocations;
     private MockupLocations mMockup;
 
-    LinearLayout llBottomSheet;
-    BottomSheetBehavior bottomSheetBehavior;
+
 
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
