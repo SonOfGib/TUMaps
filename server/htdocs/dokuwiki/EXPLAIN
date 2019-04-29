@@ -1,0 +1,4 @@
+# Explanation #
+This folder is a stub of the dokuwiki install folder, it contains the config files that were edited for our installation. This makes 
+setting up the server easier, and protects the files in case any changes are made and need to be rolled back. The entire wiki has NOT been
+added to version control because it uses a flat file storage system, and adding that to git would have been messy/unneccesary.

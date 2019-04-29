@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,6 +35,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -77,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout llBottomSheet;
     BottomSheetBehavior bottomSheetBehavior;
 
+<<<<<<< HEAD:app/src/main/java/edu/temple/basic/MainActivity.java
     private Marker lastMarker;
     private LatLng currentLoc;
 
@@ -85,13 +89,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
+=======
+>>>>>>> master:client/app/src/main/java/edu/temple/basic/MainActivity.java
     public static final String WIKI_URL_EXTRA = "edu.temple.basic.WIKI_URL_EXTRA";
 
     public String title = "";
     String value;
     int resID;
+<<<<<<< HEAD:app/src/main/java/edu/temple/basic/MainActivity.java
     boolean manual;
 
+=======
+>>>>>>> master:client/app/src/main/java/edu/temple/basic/MainActivity.java
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,11 +139,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      * TODO Add location to storage
      */
     private void addLocation() {
+<<<<<<< HEAD:app/src/main/java/edu/temple/basic/MainActivity.java
 
         //alert dialog for choosing to use current location or manually placing
         AlertDialog.Builder alertChoose= new AlertDialog.Builder(this);
         alertChoose.setTitle("Place where?");
         alertChoose.setMessage("Use current location or manually place?");
+=======
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Location Name");
+        alert.setMessage("Please enter the new location name");
+>>>>>>> master:client/app/src/main/java/edu/temple/basic/MainActivity.java
 
         //alert dialog for manual placement
         final AlertDialog.Builder alertMan = new AlertDialog.Builder(this);
@@ -143,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         final EditText input = new EditText(this);
         alertMan.setView(input);
 
+<<<<<<< HEAD:app/src/main/java/edu/temple/basic/MainActivity.java
         //alert dialog for current location placement
         final AlertDialog.Builder alertCur = new AlertDialog.Builder(this);
         alertCur.setTitle("Location Name");
@@ -151,6 +167,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertCur.setView(input3);
 
         alertChoose.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
+=======
+        alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+>>>>>>> master:client/app/src/main/java/edu/temple/basic/MainActivity.java
             public void onClick(DialogInterface dialog, int whichButton) {
 
                 alertCur.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -205,10 +224,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         });
+<<<<<<< HEAD:app/src/main/java/edu/temple/basic/MainActivity.java
 
         alertChoose.show();
 
 
+=======
+      
+        alert.show();
+>>>>>>> master:client/app/src/main/java/edu/temple/basic/MainActivity.java
     }
 
     // track your current location
