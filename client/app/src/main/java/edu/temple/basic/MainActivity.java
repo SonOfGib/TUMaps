@@ -20,9 +20,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.IBinder;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
@@ -49,7 +46,6 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -64,15 +60,11 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
 import edu.temple.basic.dao.Page;
 import edu.temple.basic.dao.mockup.MockupLocations;
 
@@ -158,35 +150,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //mLocations = new ArrayList<>(fetchMapLocations());
-
+        //Service
         Intent bindIntent = new Intent(this, LocationsFetchService.class);
         bindService(bindIntent, mConnection, BIND_AUTO_CREATE);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
-                new IntentFilter("fetched_markers"));
-
-        // get the bottom sheet view
-        llBottomSheet = findViewById(R.id.bottom_sheet);
-
-        // init the bottom sheet behavior
-        bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
-
+        // Map + User Location
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         SupportMapFragment mapFragment = new SupportMapFragment();
         transaction.replace(R.id.mapView, mapFragment).commit();
         mapFragment.getMapAsync(MainActivity.this);
-
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        FloatingActionButton fab = findViewById(R.id.fab1);
+        // Get Locations
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
+                new IntentFilter("fetched_markers"));
 
+        // Location Detail
+        llBottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
+
+        //Add a Location
+        FloatingActionButton fab = findViewById(R.id.fab1);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {addLocation();}
 
         });
 
+        // Housekeeping
         activity = this;
     }
 
