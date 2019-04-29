@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public String title = "";
     String value;
     int resID;
+    boolean manual;
 
 
     @Override
@@ -120,40 +121,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     private void addLocation() {
 
-        final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Location Name");
-        alert.setMessage("Please enter the new location name");
+        //alert dialog for choosing to use current location or manually placing
+        AlertDialog.Builder alertChoose= new AlertDialog.Builder(this);
+        alertChoose.setTitle("Place where?");
+        alertChoose.setMessage("Use current location or manually place?");
 
-        // Set an EditText view to get user input
+        //alert dialog for manual placement
+        final AlertDialog.Builder alertMan = new AlertDialog.Builder(this);
+        alertMan.setTitle("Location Name");
+        alertMan.setMessage("Please enter the new location name");
         final EditText input = new EditText(this);
-        alert.setView(input);
+        alertMan.setView(input);
 
-        AlertDialog.Builder alert2= new AlertDialog.Builder(this);
-        alert2.setTitle("Place where?");
-        alert2.setMessage("Use current location or manually place?");
-        //final EditText input2=new EditText(this);
-        //alert2.setView(input2);
-
-        final AlertDialog.Builder alert3 = new AlertDialog.Builder(this);
-        alert3.setTitle("Location Name");
-        alert3.setMessage("Please enter the new location name");
-
-        // Set an EditText view to get user input
+        //alert dialog for current location placement
+        final AlertDialog.Builder alertCur = new AlertDialog.Builder(this);
+        alertCur.setTitle("Location Name");
+        alertCur.setMessage("Please enter the new location name");
         final EditText input3 = new EditText(this);
-        alert3.setView(input3);
+        alertCur.setView(input3);
 
-        alert2.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
+        alertChoose.setPositiveButton("Current Location?", new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                /*final AlertDialog.Builder alert3 = new AlertDialog.Builder(getApplicationContext());
-                alert3.setTitle("Location Name");
-                alert3.setMessage("Please enter the new location name");
-
-                // Set an EditText view to get user input
-                final EditText input3 = new EditText(getApplicationContext());
-                alert3.setView(input3);*/
-
-                alert3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                alertCur.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -161,56 +151,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Point point = new Point();
                         point.x = 1;
                         point.y = 0;
-                        showStatusPopup(MainActivity.this, point, false);
-
+                        manual=false;
+                        showIconPopup(MainActivity.this, point);
+                        //addMarker(resID, false);
                     }
                 });
 
-                alert3.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                alertCur.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
                     }
                 });
 
-                alert3.show();
-
-                /*value=input2.getText().toString();
-                Point point = new Point();
-                point.x = 1;
-                point.y = 0;
-                showStatusPopup(MainActivity.this, point, false);*/
-
+                alertCur.show();
             }
         });
 
-        alert2.setNegativeButton("Manually Place?", new DialogInterface.OnClickListener() {
+        alertChoose.setNegativeButton("Manually Place?", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                alertMan.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         value = input.getText().toString();
 
                         Point point = new Point();
                         point.x = 1;
                         point.y = 0;
-                        showStatusPopup(MainActivity.this, point, true);
+                        manual=true;
+                        showIconPopup(MainActivity.this, point);
+                        //addMarker(resID, true);
 
                     }
                 });
 
-                alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                alertMan.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         // Canceled.
                     }
                 });
 
-                alert.show();
+                alertMan.show();
             }
 
         });
 
-        alert2.show();
+        alertChoose.show();
 
 
     }
@@ -404,6 +390,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
 
+        //Toast.makeText(getApplication(),"in get marker", Toast.LENGTH_LONG).show();
+
         Paint color=new Paint();
         color.setTextSize(40);
         color.setColor(Color.WHITE);
@@ -428,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return returnedBitmap;
     }
 
-    private void showStatusPopup(final Activity context, Point p, final boolean manual) {
+    private void showIconPopup(final Activity context, Point p) {
 
         // Inflate the popup_layout.xml
         LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
@@ -461,13 +449,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ImageView house=layout.findViewById(R.id.house);
         ImageView question=layout.findViewById(R.id.questionMark);
 
+
+
         build1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //resID=getResources().getIdentifier("building1.png", "drawable", "edu.temple.basic");
                 resID=getResources().getIdentifier("building1", "drawable", getPackageName());
+               addMarker(resID, manual);
                 chooseIcon.dismiss();
-
             }
         });
 
@@ -475,6 +464,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("building2", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -483,6 +473,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("car1", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -491,6 +482,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("car2", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -499,6 +491,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("foodtruck1", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -507,6 +500,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("train", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -515,6 +509,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("house", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
@@ -523,9 +518,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 resID=getResources().getIdentifier("questionmark", "drawable", getPackageName());
+                addMarker(resID, manual);
                 chooseIcon.dismiss();
             }
         });
+    }
+
+    public void addMarker(int rID, boolean manual){
 
         if(!manual){
             mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
@@ -545,29 +544,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
         }
 
-        /*mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng point) {
-
-                mMap.addMarker(new MarkerOptions().position(point).title(value)
-                        .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                        .snippet(value));
-                mMap.setOnMapClickListener(null);
-
-                /*if(manual) {
-                    mMap.addMarker(new MarkerOptions().position(point).title(value)
-                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                            .snippet(value));
-                    mMap.setOnMapClickListener(null);
-                }
-                else {
-                    point = currentLoc;
-                    mMap.addMarker(new MarkerOptions().position(point).title(value)
-                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                            .snippet(value));
-                }*/
-          //  }
-        //});
     }
 
 
