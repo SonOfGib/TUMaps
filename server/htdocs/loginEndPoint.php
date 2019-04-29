@@ -7,7 +7,7 @@
     $username = $_POST["username"];
     $password = $_POST["password"];
 
-    $conn = mysqli_connect('localhost', 'admin', 'TempleOwls2020', 'wiki_data');
+    $conn = mysqli_connect('localhost', 'root', 'TempleOwls2020', 'wiki_data');
     $query = "SELECT * FROM user WHERE username='$username';";
     $result = mysqli_query($conn, $query);
     if(!$conn){
