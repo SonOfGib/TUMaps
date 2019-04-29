@@ -32,6 +32,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -84,6 +85,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     int resID;
     boolean manual;
 
+    // Housekeeping
+    Activity activity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +115,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {addLocation();}
 
         });
+
+        activity = this;
     }
 
     /**
@@ -261,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        hideKeyboard(activity);
                         value=input.getText().toString();
                         Point point = new Point();
                         point.x = 1;
@@ -287,6 +293,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(DialogInterface dialog, int which) {
                 alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
+                        hideKeyboard(activity);
                         value = input.getText().toString();
 
                         Point point = new Point();
@@ -341,7 +348,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showIconPopup(final Activity context, Point p) {
-
         // Inflate the popup_layout.xml
         LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -372,8 +378,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ImageView train=layout.findViewById(R.id.train);
         ImageView house=layout.findViewById(R.id.house);
         ImageView question=layout.findViewById(R.id.questionMark);
-
-
 
         build1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -516,5 +520,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(this, "No map permission", Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
