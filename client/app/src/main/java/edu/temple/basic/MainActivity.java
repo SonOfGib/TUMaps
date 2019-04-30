@@ -313,7 +313,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .addOnSuccessListener(new OnSuccessListener<Location>() {
                             @Override
                             public void onSuccess(Location location) {
-                                currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
+                                if(location != null)
+                                    currentLoc = new LatLng(location.getLatitude(), location.getLongitude());
                             }
                         });
             }
