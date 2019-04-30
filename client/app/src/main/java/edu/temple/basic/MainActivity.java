@@ -238,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setTitle("Not Logged In");
         setContentView(R.layout.activity_main);
         fab = findViewById(R.id.fab1);
 
