@@ -55,9 +55,9 @@
                         if($result){
                             //Spit back userid
                             //echo "".$id;
-                            $query3 = "SELECT (`username`,`fullName`) FROM user WHERE id='$id';";
-                            $request = mysqli_query($conn, $query3);
-                            $row = mysqli_fetch_assoc($request);
+                            $query3 = "SELECT `username`,`fullName` FROM user WHERE id='$id';";
+                            $result = mysqli_query($conn, $query3);
+                            $row = mysqli_fetch_assoc($result);
                             print json_encode($row);
                             exit();
                         }
