@@ -17,13 +17,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
 import static android.support.test.espresso.action.ViewActions.pressImeActionButton;
 import static android.support.test.espresso.action.ViewActions.replaceText;
+import static android.support.test.espresso.action.ViewActions.scrollTo;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
@@ -31,7 +30,7 @@ import static org.hamcrest.Matchers.allOf;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class LoginTest {
+public class LoginTest2 {
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
@@ -42,7 +41,7 @@ public class LoginTest {
                     "android.permission.ACCESS_FINE_LOCATION");
 
     @Test
-    public void loginTest() {
+    public void loginTest2() {
         // Added a sleep statement to match the app's execution delay.
         // The recommended way to handle such scenarios is to use Espresso idling resources:
         // https://google.github.io/android-testing-support-library/docs/espresso/idling-resource/index.html
@@ -52,17 +51,14 @@ public class LoginTest {
             e.printStackTrace();
         }
 
-        openActionBarOverflowOrOptionsMenu(getInstrumentation().getTargetContext());
-
-        ViewInteraction appCompatTextView = onView(
-                allOf(withId(R.id.title), withText("Login"),
+        ViewInteraction appCompatButton = onView(
+                allOf(withId(android.R.id.button1), withText("Login"),
                         childAtPosition(
                                 childAtPosition(
-                                        withId(R.id.content),
+                                        withId(R.id.buttonPanel),
                                         0),
-                                0),
-                        isDisplayed()));
-        appCompatTextView.perform(click());
+                                3)));
+        appCompatButton.perform(scrollTo(), click());
 
         ViewInteraction appCompatEditText = onView(
                 allOf(withId(R.id.userRegister),
@@ -82,7 +78,7 @@ public class LoginTest {
                                         0),
                                 1),
                         isDisplayed()));
-        appCompatEditText2.perform(replaceText("user"), closeSoftKeyboard());
+        appCompatEditText2.perform(replaceText("sean"), closeSoftKeyboard());
 
         ViewInteraction appCompatEditText3 = onView(
                 allOf(withId(R.id.emailRegister),
@@ -92,10 +88,10 @@ public class LoginTest {
                                         0),
                                 2),
                         isDisplayed()));
-        appCompatEditText3.perform(replaceText("pass"), closeSoftKeyboard());
+        appCompatEditText3.perform(replaceText("test"), closeSoftKeyboard());
 
         ViewInteraction appCompatEditText4 = onView(
-                allOf(withId(R.id.emailRegister), withText("pass"),
+                allOf(withId(R.id.emailRegister), withText("test"),
                         childAtPosition(
                                 childAtPosition(
                                         withId(android.R.id.content),
@@ -104,7 +100,7 @@ public class LoginTest {
                         isDisplayed()));
         appCompatEditText4.perform(pressImeActionButton());
 
-        ViewInteraction appCompatButton = onView(
+        ViewInteraction appCompatButton2 = onView(
                 allOf(withId(R.id.loginButton), withText("Submit"),
                         childAtPosition(
                                 childAtPosition(
@@ -112,7 +108,7 @@ public class LoginTest {
                                         0),
                                 3),
                         isDisplayed()));
-        appCompatButton.perform(click());
+        appCompatButton2.perform(click());
     }
 
     private static Matcher<View> childAtPosition(
