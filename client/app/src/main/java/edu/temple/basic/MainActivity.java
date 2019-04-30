@@ -230,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             fab.setEnabled(true);
             fab.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         }
+        if (username != null && username.compareTo("") != 0)
+            setTitle("Logged In: " + username);
     }
 
     @Override
