@@ -108,6 +108,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean mBounded;
     LocationsFetchService mFetchService;
     CookieManager mCookieManager;
+    FloatingActionButton fab;
+
+    //login deets
+    Boolean mloggedIn = false;
+    String username = "";
+    Boolean mPrompted = false;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -126,6 +132,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //fetch right away so we don't have old data
             mFetchService.fetchLocations();
 
+        }
+    };
+    private LoginService mLoginService;
+    private boolean mLoginBounded;
+    private ServiceConnection mLoginConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mLoginBounded = false;
+            mLoginService = null;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mBounded = true;
+            LoginService.LocalBinder mLocalBinder = (LoginService.LocalBinder)
+                    service;
+
+            mLoginService = mLocalBinder.getService();
+            checkLogin();
         }
     };
 
@@ -162,10 +187,49 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Housekeeping
     Activity activity;
 
+
+    private void checkLogin(){
+        mloggedIn = mLoginService.getLoggedIn();
+        if(!mloggedIn){
+            //disable fab
+            fab.setEnabled(false);
+            fab.setBackgroundColor(Color.GRAY);
+            //display popup
+            if(!mPrompted) {
+                mPrompted = true;
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("You aren't logged in!")
+                        .setMessage("Consider logging in, if you don't you won't be able to add markers!")
+                        // Specifying a listener allows you to take an action before dismissing the dialog.
+                        // The dialog is automatically dismissed when a dialog button is clicked.
+                        .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(MainActivity.this,
+                                        Login.class);
+                                startActivity(intent);
+                            }
+                        })
+
+                        // A null listener allows the button to dismiss the dialog and take no further action.
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+        }
+        else{
+            //setUsernameText
+            username = mLoginService.getUsername();
+            //enablefab
+            fab.setEnabled(true);
+            fab.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        fab = findViewById(R.id.fab1);
 
         mCookieManager = new CookieManager(new PersistentCookieStore(this),
                 CookiePolicy.ACCEPT_ALL);
@@ -174,7 +238,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mLocations = new ArrayList<>(fetchMapLocations());
 
         Intent bindIntent = new Intent(this, LocationsFetchService.class);
+        Intent bindLogin = new Intent(this, LoginService.class);
         bindService(bindIntent, mConnection, BIND_AUTO_CREATE);
+        bindService(bindLogin, mLoginConnection, BIND_AUTO_CREATE);
 
         // Map + User Location
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -193,7 +259,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         //Add a Location
-        FloatingActionButton fab = findViewById(R.id.fab1);
+
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {addLocation();}
@@ -202,12 +269,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Housekeeping
         activity = this;
+        if(mBounded)
+            checkLogin();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(mConnection);
+        unbindService(mLoginConnection);
     }
 
     /**

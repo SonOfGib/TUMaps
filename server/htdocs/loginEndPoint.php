@@ -38,7 +38,7 @@
             else{
                 //header("Location: doku/doku.php");
                 //echo "Logged in!";
-                $query3 = "SELECT `username`,`fullName` FROM user WHERE id='$username';";
+                $query3 = "SELECT `username`,`fullName` FROM user WHERE `username`='$username';";
                 $result = mysqli_query($conn, $query3);
                 if($result){
                     $row = mysqli_fetch_assoc($result);

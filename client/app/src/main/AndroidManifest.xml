@@ -14,14 +14,20 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <service
-            android:name=".LocationsFetchService"
+            android:name=".LoginService"
             android:enabled="true"
             android:exported="true"></service>
+        <service
+            android:name=".LocationsFetchService"
+            android:enabled="true"
+            android:exported="true" />
 
-        <activity android:name=".Register"
-            android:launchMode="singleTop"/>
-        <activity android:name=".Login"
-            android:launchMode="singleTop"/>
+        <activity
+            android:name=".Register"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".Login"
+            android:launchMode="singleTop" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

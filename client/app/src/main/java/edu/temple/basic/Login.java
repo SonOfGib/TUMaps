@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Header;
@@ -20,6 +21,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.CookieHandler;
@@ -84,7 +88,20 @@ public class Login extends AppCompatActivity {
                             public void onResponse(String response) {
                                 Log.d("login response", response);
                                 //Log.d("cookies!?", String.valueOf(CookieHandler.getDefault().getgetCookieStore().getCookies()));
-
+                                try{
+                                    JSONObject json = new JSONObject(response);
+                                    if(json.has("username")){
+                                        Intent intent = new Intent(LoginService.LOGIN_BROADCAST);
+                                        intent.putExtra(LoginService.LOGIN_EXTRA, json.toString());
+                                        LocalBroadcastManager.getInstance(Login.this).sendBroadcast(intent);
+                                        //logged in, back to the mainActivity!
+                                        finish();
+                                    }
+                                }catch (JSONException e){
+                                    Log.e("jsonExceptio","Failed to login", e);
+                                    Toast.makeText(Login.this, "Failed to login!",
+                                            Toast.LENGTH_LONG).show();
+                                }
                             }
 
                         }, new Response.ErrorListener() {
