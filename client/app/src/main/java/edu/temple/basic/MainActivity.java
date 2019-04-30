@@ -184,6 +184,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     };
 
+    private BroadcastReceiver loggedinCast = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("Logged In", "Broadcast Recieved");
+            checkLogin();
+        }
+    };
+
     // Housekeeping
     Activity activity;
 
@@ -252,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Get Locations
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
                 new IntentFilter("fetched_markers"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(loggedinCast,
+                new IntentFilter("loggedIn"));
 
         // Location Detail
         llBottomSheet = findViewById(R.id.bottom_sheet);
@@ -278,6 +288,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onDestroy();
         unbindService(mConnection);
         unbindService(mLoginConnection);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(loggedinCast);
     }
 
     /**

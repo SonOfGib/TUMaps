@@ -58,9 +58,11 @@ public class LoginService extends Service {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(br);
     }
 
-    public void logIn(JSONObject obj){
+    private void logIn(JSONObject obj){
         loggedIn = true;
         mJson = obj;
+        Intent intent = new Intent("loggedIn");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     public String getUsername(){
