@@ -54,7 +54,11 @@
                         $result = mysqli_query($conn, $queryInsert);
                         if($result){
                             //Spit back userid
-                            echo "".$id;
+                            //echo "".$id;
+                            $query3 = "SELECT (`username`,`fullName`) FROM user WHERE id='$id';";
+                            $request = mysqli_query($conn, $query3);
+                            $row = mysqli_fetch_assoc($request);
+                            print json_encode($row);
                             exit();
                         }
                         else{
