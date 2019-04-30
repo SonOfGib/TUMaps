@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Header;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -28,6 +29,7 @@ import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +57,7 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(getApplicationContext(), Register.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
@@ -74,13 +76,15 @@ public class Login extends AppCompatActivity {
                 mUsername = userName.getText().toString();
                 mPassword = password.getText().toString();
                 //send username and password off to loginEndpoint.php
-                RequestQueue reQueue = Volley.newRequestQueue(Login.this);
+                final RequestQueue reQueue = Volley.newRequestQueue(Login.this);
                 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
                                 Log.d("login response", response);
+                                //Log.d("cookies!?", String.valueOf(CookieHandler.getDefault().getgetCookieStore().getCookies()));
+
                             }
 
                         }, new Response.ErrorListener() {
@@ -96,12 +100,13 @@ public class Login extends AppCompatActivity {
                         postMap.put("password", mPassword);
                         return postMap;
                     }
-
                 };
 
                 // Add the request to the RequestQueue.
                 reQueue.add(stringRequest);
+
             }
         });
     }
+
 }

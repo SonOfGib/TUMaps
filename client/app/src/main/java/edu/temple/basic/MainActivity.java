@@ -71,6 +71,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean manual;
     boolean mBounded;
     LocationsFetchService mFetchService;
+    CookieManager mCookieManager;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -163,7 +167,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Service
+        mCookieManager = new CookieManager(new PersistentCookieStore(this),
+                CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(mCookieManager);
+
+        //mLocations = new ArrayList<>(fetchMapLocations());
+
         Intent bindIntent = new Intent(this, LocationsFetchService.class);
         bindService(bindIntent, mConnection, BIND_AUTO_CREATE);
 
@@ -557,25 +566,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //mLocations.add(loc);
             expandBottomSheet(loc);
             mNewPinLoc = currentLoc;
+            addToDatabase(value, mNewPinLoc);
+            mFetchService.fetchLocations();
         }
         else{
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(LatLng point) {
 
-                    mMap.addMarker(new MarkerOptions().position(point).title(value)
-//                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                            .snippet(value));
+//                    mMap.addMarker(new MarkerOptions().position(point).title(value)
+////                            .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+//                            .snippet(value));
                     mMap.setOnMapClickListener(null);
                     mNewPinLoc = point;
+                    addToDatabase(value, mNewPinLoc);
+                    mFetchService.fetchLocations();
                 }
             });
         }
-        addToDatabase(value, mNewPinLoc);
-        mFetchService.fetchLocations();
     }
 
-    public void addToDatabase(final String name, LatLng latLng){
+    public void addToDatabase(final String name, final LatLng latLng){
         String url = "http://ec2-34-203-104-209.compute-1.amazonaws.com/dokuwiki/createLocation.php";
         //send username and password off to loginEndpoint.php
         RequestQueue reQueue = Volley.newRequestQueue(MainActivity.this);
@@ -597,8 +608,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             protected Map<String, String> getParams() throws AuthFailureError {
                 //lat lng uid locationName
                 Map<String, String> postMap = new HashMap<>();
-                postMap.put("lat", ""+ mNewPinLoc.latitude);
-                postMap.put("lng", ""+mNewPinLoc.longitude);
+                postMap.put("lat", ""+ latLng.latitude);
+                postMap.put("lng", ""+ latLng.longitude);
                 postMap.put("uid", "1");
                 postMap.put("locationName", name);
                 return postMap;
