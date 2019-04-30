@@ -371,8 +371,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         point.x = 1;
                         point.y = 0;
                         manual=false;
-                        showIconPopup(MainActivity.this, point);
-                        //addMarker(resID, false);
+                        //showIconPopup(MainActivity.this, point);
+                        addMarker(resID, false);
                     }
                 });
 
@@ -398,8 +398,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         point.x = 1;
                         point.y = 0;
                         manual=true;
-                        showIconPopup(MainActivity.this, point);
-                        //addMarker(resID, true);
+                       // showIconPopup(MainActivity.this, point);
+                        addMarker(resID, true);
 
                     }
                 });
@@ -445,126 +445,125 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return returnedBitmap;
     }
 
-    private void showIconPopup(final Activity context, Point p) {
-        // Inflate the popup_layout.xml
-        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
-        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = layoutInflater.inflate(R.layout.icon_selection_window, null);
-
-        // Creating the PopupWindow
-        final PopupWindow chooseIcon = new PopupWindow(context);
-        chooseIcon.setContentView(layout);
-        chooseIcon.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
-        chooseIcon.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
-        chooseIcon.setFocusable(true);
-
-        // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
-        int OFFSET_X = -20;
-        int OFFSET_Y = 50;
-
-        //Clear the default translucent background
-        chooseIcon.setBackgroundDrawable(new BitmapDrawable());
-
-        // Displaying the popup at the specified location, + offsets.
-        chooseIcon.showAtLocation(layout, Gravity.NO_GRAVITY, p.x + OFFSET_X, p.y + OFFSET_Y);
-
-        ImageView build1=layout.findViewById(R.id.building1);
-        ImageView build2=layout.findViewById(R.id.building2);
-        ImageView car1=layout.findViewById(R.id.car1);
-        ImageView car2=layout.findViewById(R.id.car2);
-        ImageView foodTruck=layout.findViewById(R.id.foodTruck);
-        ImageView train=layout.findViewById(R.id.train);
-        ImageView house=layout.findViewById(R.id.house);
-        ImageView question=layout.findViewById(R.id.questionMark);
-
-        build1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("building1", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        build2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("building2", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        car1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("car1", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        car2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("car2", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        foodTruck.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("foodtruck1", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        train.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("train", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        house.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("house", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-
-        question.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resID=getResources().getIdentifier("questionmark", "drawable", getPackageName());
-                addMarker(resID, manual);
-                chooseIcon.dismiss();
-            }
-        });
-    }
+//    private void showIconPopup(final Activity context, Point p) {
+//        // Inflate the popup_layout.xml
+//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.pickIconPopup);
+//        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//        View layout = layoutInflater.inflate(R.layout.icon_selection_window, null);
+//
+//        // Creating the PopupWindow
+//        final PopupWindow chooseIcon = new PopupWindow(context);
+//        chooseIcon.setContentView(layout);
+//        chooseIcon.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+//        chooseIcon.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
+//        chooseIcon.setFocusable(true);
+//
+//        // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
+//        int OFFSET_X = -20;
+//        int OFFSET_Y = 50;
+//
+//        //Clear the default translucent background
+//        chooseIcon.setBackgroundDrawable(new BitmapDrawable());
+//
+//        // Displaying the popup at the specified location, + offsets.
+//        chooseIcon.showAtLocation(layout, Gravity.NO_GRAVITY, p.x + OFFSET_X, p.y + OFFSET_Y);
+//
+//        ImageView build1=layout.findViewById(R.id.building1);
+//        ImageView build2=layout.findViewById(R.id.building2);
+//        ImageView car1=layout.findViewById(R.id.car1);
+//        ImageView car2=layout.findViewById(R.id.car2);
+//        ImageView foodTruck=layout.findViewById(R.id.foodTruck);
+//        ImageView train=layout.findViewById(R.id.train);
+//        ImageView house=layout.findViewById(R.id.house);
+//        ImageView question=layout.findViewById(R.id.questionMark);
+//
+//        build1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("building1", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        build2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("building2", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        car1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("car1", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        car2.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("car2", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        foodTruck.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("foodtruck1", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        train.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("train", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        house.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("house", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//
+//        question.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                resID=getResources().getIdentifier("questionmark", "drawable", getPackageName());
+//                addMarker(resID, manual);
+//                chooseIcon.dismiss();
+//            }
+//        });
+//    }
 
     public void addMarker(int rID, boolean manual){
         if(!manual){
-            Marker marker = mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
-                    .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
-                    .snippet(value));
+//            Marker marker = mMap.addMarker(new MarkerOptions().position(currentLoc).title(value)
+//                    .icon(BitmapDescriptorFactory.fromBitmap(getMarkerBitmapFromView(resID)))
+//                    .snippet(value));
+//
+//            edu.temple.basic.dao.Location loc = new edu.temple.basic.dao.Location(marker.getTitle(),
+//                    new Page("http://ec2-34-203-104-209.compute-1.amazonaws.com/dokuwiki/locations/" + marker.getTitle()),
+//                    new LatLng(marker.getPosition().latitude,
+//                            marker.getPosition().longitude),
+//                    Integer.toString(42)); // TODO make this a real id
 
-            
-            edu.temple.basic.dao.Location loc = new edu.temple.basic.dao.Location(marker.getTitle(),
-                    new Page("http://ec2-34-203-104-209.compute-1.amazonaws.com/dokuwiki/locations/" + marker.getTitle()),
-                    new LatLng(marker.getPosition().latitude,
-                            marker.getPosition().longitude),
-                    Integer.toString(42)); // TODO make this a real id
-
-            //mLocations.add(loc);
-            expandBottomSheet(loc);
+//            mLocations.add(loc);
+//            expandBottomSheet(loc);
             mNewPinLoc = currentLoc;
             addToDatabase(value, mNewPinLoc);
             mFetchService.fetchLocations();
@@ -643,7 +642,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
+            if(mMap != null){
+                mMap.setMyLocationEnabled(true);
+            }
             mLocationPermissionGranted = true;
         }
         else {
