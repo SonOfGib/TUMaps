@@ -37,7 +37,18 @@
             }
             else{
                 //header("Location: doku/doku.php");
-                echo "Logged in!";
+                //echo "Logged in!";
+                $query3 = "SELECT `username`,`fullName` FROM user WHERE id='$username';";
+                $result = mysqli_query($conn, $query3);
+                if($result){
+                    $row = mysqli_fetch_assoc($result);
+                    print json_encode($row);
+                    exit();
+                }
+                else{
+                    echo 0;
+                }
+
 		exit();
             }
             }
