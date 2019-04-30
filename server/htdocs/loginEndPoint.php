@@ -37,7 +37,8 @@
             }
             else{
                 //header("Location: doku/doku.php");
-                exit();
+                echo "Logged in!";
+		exit();
             }
             }
             else{
@@ -62,7 +63,7 @@
     }
     function loginDoku($username, $password){
         // create a new client instance
-        $client = new Client('doku/lib/exe/xmlrpc.php', 'localhost', 80);
+        $client = new Client('dokuwiki/lib/exe/xmlrpc.php', 'localhost', 80);
          
         // enable debugging to see more infos :-) (well, not for production code)
         $client->setDebug(0);
@@ -79,7 +80,9 @@
             $cookies = $response->cookies();
             foreach($cookies as $name => $cookie){
                 //echo $name."\r\n", $cookie['value']."\r\n", strtotime('+1 days')."\r\n", '/doku/'."\r\n", null."\r\n";
-                setCookie($name, $cookie['value'], null, '/doku/');
+                setCookie($name, $cookie['value'], null, '/');
+                setCookie($name, $cookie['value'], null, '/dokuwiki/');
+
             }
             return true;
         }

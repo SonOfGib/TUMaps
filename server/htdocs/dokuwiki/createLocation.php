@@ -1,6 +1,6 @@
 <?php
-    include('vendor/autoload.php');
-    include('templateFile.php');
+    include('../vendor/autoload.php');
+    include('../templateFile.php');
     use PhpXmlRpc\Value;
     use PhpXmlRpc\Request;
     use PhpXmlRpc\Client;
@@ -29,7 +29,7 @@
     }
     $lat = (float) $_POST['lat']; //sketch
     $lng = (float) $_POST['lng'];
-    $uid = $_POST['uid'];
+    $uid = (int)$_POST['uid'];
     $locName = $_POST['locationName']; //strip whitespace and lowercase this to get url.
     $temp = preg_replace('/\s*/', '', $locName);
     $url = strtolower($temp);          //add the base url in here too. or at least the namespace
@@ -59,7 +59,6 @@
             // create a new client instance
             $client = new Client('dokuwiki/lib/exe/xmlrpc.php', 'localhost', 80);
             //$client = new Client('doku/lib/exe/xmlrpc.php', 'localhost', 80);
-
             //give the client our cookies
             $client->setDebug(1);
             foreach ($_COOKIE as $key=>$val){
@@ -75,7 +74,6 @@
             $content = str_replace("<longitude>","$lng",$content);
             $request->addParam(new Value($content));
             $request->addParam(new Value(array("args" => new Value(true, "boolean")), "struct"));
-
             // send the message and wait for response
             $response = $client->send($request);
             if($response == false) die('error');
@@ -87,6 +85,7 @@
         }
         else{
             echo "nope";
+	    echo mysqli_error($conn);
         }
     }
     else{
